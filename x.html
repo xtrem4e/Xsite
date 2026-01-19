@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Crypto Multiplier | Official Portal</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root {
+            --bg: #05070a;
+            --card-bg: rgba(17, 24, 39, 0.9);
+            --primary: #38bdf8;
+            --primary-glow: rgba(56, 189, 248, 0.3);
+            --text: #ffffff;
+            --text-dim: #94a3b8;
+            --success: #22c55e;
+            --warning: #facc15;
+            --danger: #ef4444;
+            --border: rgba(255, 255, 255, 0.08);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background-color: var(--bg);
+            background-image: radial-gradient(circle at 50% 20%, #1e293b 0%, #05070a 100%);
+            color: var(--text);
+            display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh; margin: 0; padding: 0;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .ticker-wrap {
+            width: 100%; overflow: hidden; background: rgba(0, 0, 0, 0.85);
+            border-bottom: 1px solid var(--border); height: 50px;
+            display: flex; align-items: center; position: fixed; top: 0; z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .ticker { display: flex; white-space: nowrap; padding-left: 100%; animation: ticker 140s linear infinite; }
+        @keyframes ticker { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-100%, 0, 0); } }
+
+        .ticker-item { display: inline-flex; align-items: center; padding: 0 45px; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; }
+        .tick-hash { color: var(--primary); margin-right: 12px; font-weight: 600; }
+        .tick-in { color: var(--text-dim); margin-right: 10px; }
+        .tick-out { color: var(--success); font-weight: 800; border-left: 1px solid var(--border); padding-left: 10px; }
+
+        .container { width: 100%; max-width: 440px; padding: 110px 20px 40px; box-sizing: border-box; }
+        .main-card {
+            background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--border);
+            border-radius: 28px; padding: 35px 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8); text-align: center;
+        }
+
+        .timer-container { background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border); border-radius: 16px; padding: 15px; margin-bottom: 25px; transition: all 0.3s ease; }
+        .timer-label { font-size: 0.65rem; font-weight: 800; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; }
+        #countdown { font-family: 'JetBrains Mono', monospace; font-size: 1.6rem; font-weight: 800; color: var(--primary); }
+        .timer-urgent { border-color: rgba(239, 68, 68, 0.4) !important; background: rgba(239, 68, 68, 0.05) !important; box-shadow: 0 0 15px rgba(239, 68, 68, 0.1); }
+        .text-urgent { color: var(--danger) !important; text-shadow: 0 0 10px rgba(239, 68, 68, 0.4); }
+
+        .logo-glow { display: inline-flex; padding: 14px; border-radius: 18px; background: rgba(56, 189, 248, 0.1); color: var(--primary); margin-bottom: 15px; box-shadow: 0 0 25px var(--primary-glow); }
+        h1 { font-size: 2.1rem; margin: 0; font-weight: 800; letter-spacing: -0.04em; }
+        .subtitle { color: var(--text-dim); font-size: 0.9rem; margin: 8px 0 30px 0; }
+
+        .address-section { text-align: left; margin-bottom: 18px; }
+        label { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; color: var(--primary); letter-spacing: 0.08em; margin-bottom: 8px; display: block; }
+        .copy-trigger { background: rgba(0, 0, 0, 0.4); border: 1px solid var(--border); border-radius: 14px; padding: 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: transform 0.2s; }
+        .copy-trigger:active { transform: scale(0.98); }
+        .address-font { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; }
+
+        .btn-send { background: var(--primary); color: #000; width: 100%; padding: 18px; border-radius: 16px; font-weight: 800; font-size: 0.95rem; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 10px; border: none; box-sizing: border-box; margin-top: 25px; white-space: nowrap; transition: background 0.2s; }
+        .btn-send:hover { background: #7dd3fc; }
+        .status-footer { margin-top: 25px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.7rem; font-weight: 700; color: var(--success); }
+        .dot { width: 6px; height: 6px; background: var(--success); border-radius: 50%; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        .qr-frame { background: #fff; padding: 15px; border-radius: 12px; display: inline-block; margin-top: 15px; }
+        .qr-frame img { width: 180px; height: 180px; display: block; }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+<div class="ticker-wrap"><div class="ticker" id="ticker-content"></div></div>
+
+<div class="container">
+    <div class="main-card">
+        <div class="logo-glow"><i data-lucide="zap" fill="currentColor" size="32"></i></div>
+        <h1>2X Reward</h1>
+        <p class="subtitle">Crypto Multiplier Official Portal</p>
+
+        <div class="timer-container" id="timer-box">
+            <div class="timer-label">Bonus Window Closing In</div>
+            <div id="countdown">--:--:--</div>
+        </div>
+
+        <div class="address-section">
+            <label>Ethereum Network</label>
+            <div class="copy-trigger" onclick="handleCopy('0x125f861d413abc4afc7a70dbea8ab8a682973a03', 'ETH')">
+                <span class="address-font">0x125f...8a682973a03</span>
+                <i data-lucide="copy" size="18" style="opacity: 0.4;"></i>
+            </div>
+        </div>
+
+        <div class="address-section">
+            <label>Bitcoin Network</label>
+            <div class="copy-trigger" onclick="handleCopy('bc1qs7953kuct308p3zh2h9lwsq5pannnua3vncjz2', 'BTC')">
+                <span class="address-font">bc1qs795...ua3vncjz2</span>
+                <i data-lucide="copy" size="18" style="opacity: 0.4;"></i>
+            </div>
+        </div>
+
+        <a href="mailto:official2xrewards@gmail.com?subject=Send the transaction proof and your wallet address&body=Address:" class="btn-send">
+            <i data-lucide="wallet" size="20"></i>
+            <span>Send Transaction Proof</span>
+        </a>
+        
+        <div class="status-footer">
+            <div class="dot"></div> PAYOUTS ACTIVE & VERIFIED
+        </div>
+    </div>
+</div>
+
+<script>
+    // Protection Scripts
+    document.onkeydown = function(e) {
+        if (e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74 || e.keyCode == 67)) || (e.ctrlKey && e.keyCode == 85)) return false;
+    };
+
+    lucide.createIcons();
+
+    // Use absolute URL to ensure it hits your local server
+    const API_URL = 'http://localhost:3000/api/timer';
+    let timerInterval = null;
+
+    async function startTimer() {
+        const display = document.querySelector('#countdown');
+        const timerBox = document.querySelector('#timer-box');
+
+        try {
+            const response = await fetch(API_URL);
+            if (!response.ok) throw new Error();
+            const data = await response.json();
+            let endTime = data.endTime;
+
+            if (timerInterval) clearInterval(timerInterval);
+
+            timerInterval = setInterval(() => {
+                const now = Date.now();
+                let remaining = Math.floor((endTime - now) / 1000);
+
+                if (remaining <= 0) {
+                    clearInterval(timerInterval);
+                    startTimer(); 
+                    return;
+                }
+
+                if (remaining < 3600) {
+                    display.classList.add('text-urgent');
+                    timerBox.classList.add('timer-urgent');
+                } else {
+                    display.classList.remove('text-urgent');
+                    timerBox.classList.remove('timer-urgent');
+                }
+
+                let h = Math.floor(remaining / 3600);
+                let m = Math.floor((remaining % 3600) / 60);
+                let s = Math.floor(remaining % 60);
+
+                display.textContent = 
+                    String(h).padStart(2, '0') + ":" + 
+                    String(m).padStart(2, '0') + ":" + 
+                    String(s).padStart(2, '0');
+            }, 1000);
+        } catch (err) {
+            display.textContent = "SYNCING...";
+            setTimeout(startTimer, 5000); // Retry sync
+        }
+    }
+
+    function handleCopy(addr, coin) {
+        navigator.clipboard.writeText(addr);
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${addr}`;
+        Swal.fire({
+            title: 'Address Copied!',
+            html: `<div class="qr-frame"><img src="${qrUrl}"></div><p style="font-family: monospace; font-size: 0.75rem; margin-top: 15px; color: #38bdf8; word-break: break-all;">${addr}</p>`,
+            background: '#0b0f1a',
+            color: '#fff',
+            confirmButtonColor: '#38bdf8',
+            confirmButtonText: 'I Have Sent the Funds'
+        });
+    }
+
+    function generateTicker() {
+        const ticker = document.getElementById('ticker-content');
+        let items = "";
+        for(let i=0; i<20; i++) {
+            const coin = Math.random() > 0.5 ? 'BTC' : 'ETH';
+            const inAmt = (Math.random() * 0.45 + 0.05).toFixed(3);
+            const hash = '0x' + Math.random().toString(16).slice(2, 6).toUpperCase();
+            items += `<div class="ticker-item"><span class="tick-hash">${hash}...</span><span class="tick-in">IN: ${inAmt} ${coin}</span><span class="tick-out">OUT: ${(inAmt*2).toFixed(3)} ${coin}</span></div>`;
+        }
+        ticker.innerHTML = items + items;
+    }
+
+    generateTicker();
+    startTimer();
+</script>
+</body>
+</html>
